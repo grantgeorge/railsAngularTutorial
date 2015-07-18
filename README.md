@@ -1,4 +1,10 @@
-## Prerequisites:
+# Angular, Rails, Gulp, Heroku
+
+This guide is inteded to demonstrate how you can deploy an Angular SPA app
+with a Ruby on Rails JSON API backend to Heroku. It uses Gulp as a client-side
+builder but this can easily be swapped out with Grunt.
+
+## Prerequisites
 
 - RVM / A Stable Ruby Version
 - Yeoman, Gulp, Bower (npm install -g yo gulp bower)
@@ -21,7 +27,7 @@ change into the new directory
 
     bin/rails g scaffold articles title:string body:text
 
-# API Scope and Namespace
+## API Scope and Namespace
 
 Update routes to use a scope of /api and a namespace of V1
 
