@@ -6,4 +6,11 @@
 #   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create(name: 'Emanuel', city: cities.first)
 
-Article.create(title: 'Test Article', body: 'A test article. Cool!')
+Article.create(title: 'Test Article',
+               body: 'A test article. Cool!')
+Article.create(title: 'Donald Trump Resigns from Presidential Candidacy',
+               body: 'Thanks goodness')
+Article.create(title: 'Child’s Description Of Heaven During Near-Death Experience Specifically Mentions Book Deal',
+               body: 'Thanks goodness')
+Article.create(title: 'New Poll Finds 74% Of Americans Would Be Comfortable Blaming Female President For Problems',
+               body: 'Thanks goodness')
