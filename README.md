@@ -131,6 +131,8 @@ This is all just a matter of personal preference.
   ES6 (Babel formerly 6to5), ECMAScript 6 compiled with Babel which requires ? Which JS preprocessor do you want? None, I like to code in standard JavaScript.
 ? Which html template engine would you want? None, I like to code in standard HTML.
 
+## Update the gulpfile to build to public directory in root of project source
+
 Edit the gulpfile conf file at client/gulp/conf.js
 
 change
@@ -155,11 +157,23 @@ exports.paths = {
 };
 ```
 
+Set the force option to true for the clean task in gulp/build.js:
+
+```
+gulp.task('clean', function (done) {
+  $.del([path.join(conf.paths.dist, '/'), path.join(conf.paths.tmp, '/')], { force: true }, done);
+});
+```
+
     gulp build
 
     http://localhost:3000/#/
 
 You should see the built version of the angular app.
+
+## Configure local dev environment
+
+For the local dev environment, I follow this tutorial:
 
 http://www.angularonrails.com/how-to-wire-up-ruby-on-rails-and-angularjs-as-a-single-page-application-gulp-version/
 
@@ -198,12 +212,36 @@ browserSync.instance = browserSync.init({
 to
 
 ```
+var server = {
+  baseDir: baseDir,
+  routes: routes,
+  middleware: [
+    proxyMiddleware('/api', { target: 'http://localhost:3000' })
+  ]
+};
+
+/*
+ * You can add a proxy to your backend by uncommenting the line bellow.
+ * You just have to configure a context which will we redirected and the target url.
+ * Example: $http.get('/users') requests will be automatically proxified.
+ *
+ * For more details and option, https://github.com/chimurai/http-proxy-middleware/blob/v0.0.5/README.md
+ */
+// server.middleware = proxyMiddleware('/users', {target: 'http://jsonplaceholder.typicode.com', proxyHost: 'jsonplaceholder.typicode.com'});
+
+browserSync.instance = browserSync.init({
+  port: 9000,
+  startPath: '/',
+  server: server,
+  browser: browser
+});
+```
 
 Add 2 tasks at the end of the file:
 
 ```
 gulp.task('rails', function() {
-  exec("rails server");
+  exec("../bin/rails s");
 });
 
 gulp.task('serve:full-stack', ['rails', 'serve']);
@@ -216,7 +254,8 @@ Run:
     gulp serve:full-stack
 
 1. The front-end server should come up on port 9000 instead of 3000.
-2. If you navigate to http://localhost:9000/api/v1/articles,
+2. If you navigate to http://localhost:9000/api/v1/articles, you should see a
+response from the API.
 3. Rails is running on port 3000.
 
 ## Acessing API from Client
@@ -231,7 +270,7 @@ Edit app/src/index.route.js and add an 'articles' state:
 });
 ```
 
-mkdir mkdir src/app/components/article
+mkdir src/app/components/article
 
 touch src/app/components/articles/articles.factory.js
 
@@ -278,9 +317,8 @@ angular.module('angularRails')
   .controller('ArticlesController', function ($scope, Articles) {
 
     Articles.query(function (res) {
-      console.log(res);
       $scope.articles = res;
-    })
+    });
 
   });
 ```
@@ -289,9 +327,51 @@ angular.module('angularRails')
 
 [Heroku Docs](https://devcenter.heroku.com/articles/using-multiple-buildpacks-for-an-app)
 
+Add the ruby and node heroku buildpacks:
+
 ```
 heroku buildpacks:set https://github.com/heroku/heroku-buildpack-ruby
-heroku buildpacks:add https://github.com/heroku/heroku-buildpack-nodejs
+heroku buildpacks:add --index 1 https://github.com/heroku/heroku-buildpack-nodejs
 ```
 
+Verify (order matters)
+
+```
+$ heroku buildpacks
+➜  railsAngular git:(master) heroku buildpacks
+=== angular-rails-gulp-tutorial Buildpack URLs
+1. https://github.com/heroku/heroku-buildpack-nodejs
+2. https://github.com/heroku/heroku-buildpack-ruby
+```
+
+Set the node environment to production.
+
     heroku config:set NODE_ENV=production
+
+Create a Procfile in root of project to run the WEBrick webserver
+
+    bin/rails s
+
+Deploy!
+
+    git add -A
+
+    git commit -m "testing deploy"
+
+    git push heroku
+
+Verify:
+
+    heroku open
+
+Navigate to articles page:
+
+    https://angular-rails-gulp-tutorial.herokuapp.com/#/articles
+
+Debrugging:
+
+    heroku logs
+
+    heroku addons:create papertrail
+
+    heroku addons:open papertrail
