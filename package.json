@@ -4,7 +4,7 @@
   "dependencies": {},
   "scripts": {
     "test": "gulp test",
-    "postinstall": "cd client && bower install --config.interactive=false && gulp build"
+    "postinstall": "bower install --config.interactive=false && cd client && gulp build"
   },
   "dependencies": {
     "browser-sync": "~2.7.12",

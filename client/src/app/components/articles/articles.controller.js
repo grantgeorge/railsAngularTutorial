@@ -1,11 +1,13 @@
-'use strict';
+(function() {
+  'use strict';
 
-angular.module('angularRails')
-  .controller('ArticlesController', function ($scope, Articles) {
+  angular.module('angularRails')
+    .controller('ArticlesController', function ($scope, Articles) {
 
-    Articles.query(function (res) {
-      console.log(res);
-      $scope.articles = res;
-    })
+      Articles.query(function (res) {
+        console.log(res);
+        $scope.articles = res;
+      })
 
-  });
+    });
+})();
