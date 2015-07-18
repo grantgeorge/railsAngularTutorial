@@ -51,6 +51,11 @@
     "wrench": "~1.5.8"
   },
   "engines": {
-    "node": ">=0.10.0"
-  }
+    "node": "0.12.7",
+    "npm": "2.12.1"
+  },
+  "cacheDirectories": [
+    "node_modules",
+    "./client/bower_components"
+  ]
 }
