@@ -113,29 +113,18 @@ https://devcenter.heroku.com/articles/getting-started-with-rails4
 
     yo gulp-angular railsAngular
 
-I select all the default options except I configure SASS to use the Ruby version.
-This is all just a matter of personal preference.
+I selected:
 
-? Which version of Angular do you want? 1.4.0 (stable)
-? Which Angular's modules would you want to have? (ngRoute and ngResource wil? Which Angular's modules would you want to have? (ngRoute and ngResource will be addressed after) angular-animate.js (enable animation features), angular-cookies.js (handle cookie management), angular-touch.js (for mobile development), angular-sanitize.js (to securely parse and manipulate HTML)
-? Would you need jQuery or perhaps Zepto? jQuery 2.x (new version, lighter, IE9+)
-? Would you like to use a REST resource library? ngResource, the official support for RESTful services
-? Would you like to use a router ? UI Router, flexible routing with nested views
-? Which UI framework do you want? (Use arrow keys)
-❯ Bootstrap, the most popular HTML, CSS, and JS framework
-? Which UI framework do you want? Bootstrap, the most popular HTML, CSS, and JS framework
-? How do you want to implements your Bootstrap components? (Use arrow keys)
-? How do you want to implements your Bootstrap components? Angular UI Bootstrap, Bootstrap components written in pure AngularJS by the AngularUI Team
-? Which CSS preprocessor do you want? (Use arrow keys)
-❯ Sass (Node), Node.js binding to libsass, the C version of the popular style? Which CSS preprocessor do you want?
-  Sass (Node), Node.js binding to libsass, the C version of the popular style? Which CSS preprocessor do you want?
-  Sass (Node), Node.js binding to libsass, the C version of the popular style? Which CSS preprocessor do you want?
-  Sass (Node), Node.js binding to libsass, the C version of the popular style? Which CSS preprocessor do you want?
-  Sass (Node), Node.js binding to libsass, the C version of the popular style? Which CSS preprocessor do you want? None, only the good old CSS
-? Which JS preprocessor do you want? (Use arrow keys)
-❯ None, I like to code in standard JavaScript.
-  ES6 (Babel formerly 6to5), ECMAScript 6 compiled with Babel which requires ? Which JS preprocessor do you want? None, I like to code in standard JavaScript.
-? Which html template engine would you want? None, I like to code in standard HTML.
+- Angular 1.4.0
+- all default Angular modules
+- jQuery 2.x
+- ngResource
+- UI Router
+- Bootstrap
+- Angular UI Bootstrap
+- Base CSS
+- Standard Javascript
+- Standard HTML
 
 ## Update the gulpfile to build to public directory in root of project source
 
