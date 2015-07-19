@@ -1,37 +1,41 @@
-# Angular, Rails, Gulp, Heroku
+The purpose of this guide is to teach how to create an Angular app that uses a Rails::API Backend. We'll build the client-side app using Gulp and deploy to Heroku with the source all contained in the same repository. This is a great stack that utilizes the robustness of Rails as a JSON API and the agility of Angular as a client-side application.
 
-This guide is inteded to demonstrate how you can deploy an Angular SPA app
-with a Ruby on Rails JSON API backend to Heroku. It uses Gulp as a client-side
-builder but this can easily be swapped out with Grunt.
+I've grown very fond of using Rails as a single-purpose JSON API for it's great authentication (devise) and testing capability (RSpec, Capybara). Angular is great at consuming RESTful APIs using the official [ngResource](https://docs.angularjs.org/api/ngResource) module.
 
 ## Prerequisites
 
-- RVM / A Stable Ruby Version
-- Yeoman, Gulp, Bower (npm install -g yo gulp bower)
+* RVM / A Stable Ruby Version
+* Yeoman, Gulp, Bower `npm install -g yo gulp bower`
 
-Install the rails-api gem
+## Bootstrap the API
 
-    gem install rails-api
+We'll be using the [Rails::API gem](https://github.com/rails-api/rails-api) for this application as we'll be using Rails as a RESTFul, JSON API. Since we're using Angular as the client application we don't need much of the middleware or asset management Rails provides by default. Rails::API slims-down the backend and gives us exactly what we need.
 
-Generate a new Rails::API app
+    $ gem install rails-api
 
-    rails-api new railsAngular --database=postgresql
+Generate a new Rails::API app and run bundler.
 
-change into the new directory
+```prettyprint lang-bash
+$ rails-api new railsAngular --database=postgresql
 
-    cd railsAngular
+$ cd railsAngular
 
-    bundle install
-
-## Create a scaffolded resource and test API
-
-    bin/rails g scaffold articles title:string body:text
-
-## API Scope and Namespace
-
-Update routes to use a scope of /api and a namespace of V1
-
+$ bundle install
 ```
+
+#### Scaffold a resource and test API
+
+Scaffold a resource that we'll wire up to Angular and consume. This can be anything you want but I recommend including at least a few fields to test with.
+
+```prettyprint lang-bash
+$ bin/rails g scaffold articles title:string body:text
+```
+
+#### API Scope and Namespace
+
+Modify routes to use a scope of /api and a namespace of V1. We'll also make it default to JSON.
+
+```prettyprint lang-ruby
 scope '/api' do
   namespace :v1, defaults: { format: :json } do
 
@@ -41,151 +45,133 @@ scope '/api' do
 end
 ```
 
-    mkdir app/controllers/v1
+Update the controller to use the new V1 namespace.
 
-    mv app/controllers/articles_controller.rb app/controllers/v1/articles_controller.rb
+```prettyprint lang-bash
+$ mkdir app/controllers/v1
 
-In app/controllers/v1/articles_controller.rb, change the first line where its says:
+$ mv app/controllers/articles_controller.rb app/controllers/v1/articles_controller.rb
+```
 
-    ArticlesController
+In app/controllers/v1/articles_controller.rb, update
+
+```prettyprint lang-ruby
+class ArticlesController
+```
 
 to:
 
-    class V1::ArticlesController
+```prettyprint lang-ruby
+class V1::ArticlesController
+```
 
-## Setup Database
+#### Setup Database
 
-    echo "Article.create(title: 'Test Article', body: 'A test article. Cool!')" >> db/seeds.rb
+I recommend creating a few seeds by adding to db/seeds.rb. This will help us when we test the end point to request the resources and we'll eventually see these through our UI.
 
-    rake db:create
+```prettyprint lang-bash
+$ echo "Article.create(title: 'Test Article', body: 'A test article. Cool!')" >> db/seeds.rb
 
-    rake db:migrate
+$ rake db:create
 
-    rake db:seed
+$ rake db:migrate
 
-## Test the scaffoled resource and routing
+$ rake db:seed
+```
 
-    rails s
+#### Test the Configuration
 
-    http://localhost:3000/articles
+Test the new resource by navigating to articles GET #index.
 
-You should see nice JSON output of your Articles
+```prettyprint lang-bash
+$ bin/rails s
+```
 
-## Testing
+http://localhost:3000/api/v1/articles
 
-    rake db:setup RAILS_ENV=test
-
-    bin/rake test
+You should see nice JSON output of the Article resources.
 
 ## Deploy to Heroku
 
+Refer to the Heroku documentation about getting started with a Rails application. We install the rails_12factor gem for production, initialize the git repo, and then create the Heroku app. After we deploy to Heroku, we need to setup the Rails database.
+
 https://devcenter.heroku.com/articles/getting-started-with-rails4
 
-    echo "gem 'rails_12factor', group: :production" >> Gemfile
+```prettyprint lang-bash
+$ echo "gem 'rails_12factor', group: :production" >> Gemfile
 
-    bundle install
+$ bundle install
 
-    git init
+$ git init
 
-    git add .
+$ git add .
 
-    git commit -m "init"
+$ git commit -m "init"
 
-    git status
+$ heroku create
 
-    heroku create
+$ git push heroku master
 
-    git config --list | grep heroku
+$ heroku run rake db:migrate && rake db:seed
 
-    git push heroku master
+$ heroku open
+```
 
-    heroku run rake db:migrate && rake db:seed
+Open up your Heroku app in a browser and again test the resource you created. The output should be exactly as we see it when we deploy locally.
 
-    heroku open
-
-    https://fast-forest-6196.herokuapp.com/api/v1/articles
+https://fast-forest-6196.herokuapp.com/api/v1/articles
 
 ## Create Angular App
 
-    npm install -g generator-gulp-angular
+We're going to put all of the source of our front-end Angular application in a client directory. We'll install the generator-gulp-angular, make the directory, and bootstrap the application.
 
-    mkdir client && cd $_
+```prettyprint lang-bash
+$ npm install -g generator-gulp-angular
 
-    yo gulp-angular railsAngular
+$ mkdir client && cd $_
 
-I selected:
-
-- Angular 1.4.0
-- all default Angular modules
-- jQuery 2.x
-- ngResource
-- UI Router
-- Bootstrap
-- Angular UI Bootstrap
-- Base CSS
-- Standard Javascript
-- Standard HTML
-
-## Update the gulpfile to build to public directory in root of project source
-
-Edit the gulpfile conf file at client/gulp/conf.js
-
-change
-
-```
-exports.paths = {
-  src: 'src',
-  dist: 'dist',
-  tmp: '.tmp',
-  e2e: 'e2e'
-};
+$ yo gulp-angular railsAngular
 ```
 
-to:
+I selected most of the default values. You can customize the options as you see fit.
 
-```
-exports.paths = {
-  src: 'src',
-  dist: '../public',
-  tmp: '.tmp',
-  e2e: 'e2e'
-};
-```
+* Angular 1.4.0
+* all default Angular modules
+* jQuery 2.x
+* ngResource
+* UI Router
+* Bootstrap
+* Angular UI Bootstrap
+* Base CSS
+* Standard Javascript
+* Standard HTML
 
-Set the force option to true for the clean task in gulp/build.js:
+#### Setup local development environment
 
-```
-gulp.task('clean', function (done) {
-  $.del([path.join(conf.paths.dist, '/'), path.join(conf.paths.tmp, '/')], { force: true }, done);
-});
-```
-
-    gulp build
-
-    http://localhost:3000/#/
-
-You should see the built version of the angular app.
-
-## Configure local dev environment
-
-For the local dev environment, I follow this tutorial:
+For the local dev environment, I followed this tutorial:
 
 http://www.angularonrails.com/how-to-wire-up-ruby-on-rails-and-angularjs-as-a-single-page-application-gulp-version/
 
-edit client/gulp/server.js
+Next, we're going to edit client/gulp/server.js to do several things.
 
-Add:
+1. Configure [proxy middleware](https://www.npmjs.com/package/http-proxy-middleware#star) with a context of '/api' that targets the Rails API application.
+2. Set browserSync to run the client application on port 9000 since the Rails server uses 3000 by default.
+3. Add Gulp tasks to start rails and to start the entire full-stack application.
 
-var exec = require('child_process').exec;
+```prettyprint lang-javascript
+...
 
-to load this dependency.
+var proxyMiddleware = require('http-proxy-middleware');
++ var exec = require('child_process').exec;
 
-Change this block
+...
 
-```
 var server = {
   baseDir: baseDir,
   routes: routes,
++ middleware: [
++   proxyMiddleware('/api', { target: 'http://localhost:3000' })
++ ]
 };
 
 /*
@@ -198,78 +184,60 @@ var server = {
 // server.middleware = proxyMiddleware('/users', {target: 'http://jsonplaceholder.typicode.com', proxyHost: 'jsonplaceholder.typicode.com'});
 
 browserSync.instance = browserSync.init({
++ port: 9000,
   startPath: '/',
   server: server,
   browser: browser
 });
+
+...
+
++ gulp.task('rails', function() {
++   exec("../bin/rails s");
++ });
+
++ gulp.task('serve:full-stack', ['rails', 'serve']);
 ```
 
-to
+Now we can run our new serve:full-stack task from the client directory and test that our client app loads and that the API is accessible from the proxy.
 
-```
-var server = {
-  baseDir: baseDir,
-  routes: routes,
-  middleware: [
-    proxyMiddleware('/api', { target: 'http://localhost:3000' })
-  ]
-};
-
-/*
- * You can add a proxy to your backend by uncommenting the line bellow.
- * You just have to configure a context which will we redirected and the target url.
- * Example: $http.get('/users') requests will be automatically proxified.
- *
- * For more details and option, https://github.com/chimurai/http-proxy-middleware/blob/v0.0.5/README.md
- */
-// server.middleware = proxyMiddleware('/users', {target: 'http://jsonplaceholder.typicode.com', proxyHost: 'jsonplaceholder.typicode.com'});
-
-browserSync.instance = browserSync.init({
-  port: 9000,
-  startPath: '/',
-  server: server,
-  browser: browser
-});
+```prettyprint lang-bash
+$ gulp serve:full-stack
 ```
 
-Add 2 tasks at the end of the file:
-
-```
-gulp.task('rails', function() {
-  exec("../bin/rails s");
-});
-
-gulp.task('serve:full-stack', ['rails', 'serve']);
-```
-
-    npm install --save-dev http-proxy-middleware
-
-Run:
-
-    gulp serve:full-stack
+Let's test the 3 changes we made:
 
 1. The front-end server should come up on port 9000 instead of 3000.
-2. If you navigate to http://localhost:9000/api/v1/articles, you should see a
-response from the API.
+2. Test the proxy by navigating to http://localhost:9000/api/v1/articles. You should see a response from the API.
 3. Rails is running on port 3000.
 
-## Acessing API from Client
+## Acessing the API from Client
 
-Edit app/src/index.route.js and add an 'articles' state:
+Edit client/app/src/index.route.js and add an 'articles' state:
 
-```
+```prettyprint lang-javascript
+...
 .state('articles', {
   url: '/articles',
   templateUrl: 'app/components/articles/articles.html',
   controller: 'ArticlesController'
 });
+...
 ```
 
-mkdir src/app/components/article
+I like to create "Vertical Modules" where all of the source realted to a component is contained in the same directory.
 
-touch src/app/components/articles/articles.factory.js
-
+```prettyprint lang-bash
+$ mkdir client/src/app/components/articles
 ```
+
+Create a factory that will consume our API resource. By default, Angular resource does not have a method for updating so we'll create that. See the [official documentation for Angular $resource](https://docs.angularjs.org/api/ngResource/service/$resource#creating-a-custom-put-request) for more information.
+
+```prettyprint lang-bash
+$ touch client/src/app/components/articles/articles.factory.js
+```
+
+```prettyprint lang-javascript
 'use strict';
 
 angular.module('angularRails')
@@ -285,9 +253,13 @@ angular.module('angularRails')
 
 ```
 
-touch src/app/components/articles/articles.html
+Now we'll create a basic view that will iterate over all of the article resources and output their basic attributes.
 
+```prettyprint lang-bash
+touch src/app/components/articles/articles.html
 ```
+
+```prettyprint lang-html
 <div class="container">
 
   <div>
@@ -305,7 +277,11 @@ touch src/app/components/articles/articles.html
 
 ```
 
-touch src/app/components/articles/articles.controller.js
+We'll create a basic controller that uses the factory to query all of the Article resources.
+
+```prettyprint lang-bash
+$ touch src/app/components/articles/articles.controller.js
+```
 
 ```
 angular.module('angularRails')
@@ -318,20 +294,66 @@ angular.module('angularRails')
   });
 ```
 
-## Building the client app when deploying to Heroku
+#### Test the UI
 
-[Heroku Docs](https://devcenter.heroku.com/articles/using-multiple-buildpacks-for-an-app)
+Run gulp:full-stack again and navigate to your newly created state on the frontend (http://localhost:9000/#/articles). Your Angular application should be correctly consuming and display the Article resources.
+
+![angular-on-rails-api](http://grantgeorge.io/content/images/2015/07/Screen-Shot-2015-07-19-at-9-44-20-AM.png)
+
+## Deploy the entire stack to Heroku
+
+Let's deploy our awesome full-stack application! We want Gulp to build the production files in a directory called 'public'. Rails, by default, will load these files at the root route.
+
+Edit the gulpfile conf file at client/gulp/conf.js and change
+
+```prettyprint lang-javascript
+exports.paths = {
+  src: 'src',
+  dist: 'dist',
+  tmp: '.tmp',
+  e2e: 'e2e'
+};
+```
+
+to:
+
+```prettyprint lang-javascript
+exports.paths = {
+  src: 'src',
+  dist: '../public',
+  tmp: '.tmp',
+  e2e: 'e2e'
+};
+```
+
+Set the force option to true for the clean task in client/gulp/build.js. This is required since the build directory is a level up from the client directory and a warning is thrown when we clean the directory for building.
+
+```prettyprint lang-javascript
+gulp.task('clean', function (done) {
+  $.del([path.join(conf.paths.dist, '/'), path.join(conf.paths.tmp, '/')], { force: true }, done);
+});
+```
+
+Now we can build the application and you should see the built application in public.
+
+```prettyprint lang-bash
+$ gulp build
+```
+
+#### Configure Multiple Heroku Buildpacks
+
+The following section refers to the [official Heroku documentation on using multiple buildpacks](https://devcenter.heroku.com/articles/using-multiple-buildpacks-for-an-app).
 
 Add the ruby and node heroku buildpacks:
 
-```
-heroku buildpacks:set https://github.com/heroku/heroku-buildpack-ruby
-heroku buildpacks:add --index 1 https://github.com/heroku/heroku-buildpack-nodejs
+```prettyprint lang-bash
+$ heroku buildpacks:set https://github.com/heroku/heroku-buildpack-ruby
+$ heroku buildpacks:add --index 1 https://github.com/heroku/heroku-buildpack-nodejs
 ```
 
-Verify (order matters)
+Verify that you have the correct buildpack configuration. Note that you must have both buildpacks set and in the correct order. This ensures that it will install and build our client app but use the Rails app as the webserver.
 
-```
+```prettyprint lang-bash
 $ heroku buildpacks
 ➜  railsAngular git:(master) heroku buildpacks
 === angular-rails-gulp-tutorial Buildpack URLs
@@ -341,32 +363,54 @@ $ heroku buildpacks
 
 Set the node environment to production.
 
-    heroku config:set NODE_ENV=production
+```prettyprint lang-bash
+$ heroku config:set NODE_ENV=production
+```
 
 Create a Procfile in root of project to run the WEBrick webserver
 
-    bin/rails s
+```prettyprint lang-bash
+$ bin/rails s
+```
 
 Deploy!
 
-    git add -A
+```prettyprint lang-bash
+$ git add -A
 
-    git commit -m "testing deploy"
+$ git commit -m "testing deploy"
 
-    git push heroku
+$ git push heroku
+```
 
-Verify:
+Open your deployed Heroku application and verify everything works!
 
-    heroku open
+```prettyprint lang-bash
+$ heroku open
+```
 
-Navigate to articles page:
+Navigate to articles page. It should work exactly as you have it locally but with built client assets.
 
-    https://angular-rails-gulp-tutorial.herokuapp.com/#/articles
+https://angular-rails-gulp-tutorial.herokuapp.com/#/articles
 
-Debrugging:
+![angular-on-rails-gulp-heroku-assets](http://grantgeorge.io/content/images/2015/07/Screen-Shot-2015-07-19-at-9-53-54-AM.png)
 
-    heroku logs
+## Debugging
 
-    heroku addons:create papertrail
+If you're having issues with the deploy I recommend tailing the Heroku logs while you deploy. Additionally, I recommend installing papertrail. Papertrail allows you to search the logs and offers many features that can be useful as your application grows.
 
-    heroku addons:open papertrail
+```prettyprint lang-bash
+$ heroku logs --tail
+
+$ heroku addons:create papertrail
+
+$ heroku addons:open papertrail
+```
+
+![heroku-papertrail-addon-in-action](http://grantgeorge.io/content/images/2015/07/Screen-Shot-2015-07-19-at-9-56-16-AM.png)
+
+## Where to go from here?
+
+Start building your application using the lightweight Rails API framework and the ever-popular Angular! This is a great stack that utilizes the robustness of Rails as a JSON API and the agility of Angular as a client-side application. There are many things you can do to improve your application: setup a test infrastructure, configure Puma as a webserver, and configure a logging application (I recommend papertrail as it works well with Heroku)
+
+Have fun!
